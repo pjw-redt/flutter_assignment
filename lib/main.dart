@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'style.dart';
 
+enum Role { leader, member }
+
 void main() {
   runApp(const MyApp());
 }
@@ -8,164 +10,188 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Assignment3',
+      title: 'First Flutter App',
       theme: ThemeData(
-        primaryColor: Colors.blue,
-        primarySwatch: Colors.indigo,
+        primarySwatch: Colors.orange,
         fontFamily: 'Pretendard',
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
       ),
-      home: MyHomePage(),
+      home: MyHomePage(), // title은 제목
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key}); // 우리가 보고있는 화면
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  bool _isChecked = false;
+  // bool _isChecked2 = false;
+
+  Role _role = Role.member;
+
+  final _valueList = List.generate(10, (i) => '$i point');
+  var _selectedValue = '0 point';
+
+  String _grade = 'A';
+  final _midtermController =
+  TextEditingController(); // 텍스트 필드에 입력된 값을 가져오기 위한 컨트롤러
+  final _finalController =
+  TextEditingController(); // 텍스트 필드에 입력된 값을 가져오기 위한 컨트롤러
+
+  void dispose() {
+    _midtermController.dispose();
+    _finalController.dispose(); // 컨트롤러를 사용한 뒤에는 반드시 해제해야 함
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.blue,
-          titleTextStyle: const TextStyle(
-            color: Colors.white,
-            fontSize: 20.0,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Grade Calculator'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: (){},
           ),
-          iconTheme: const IconThemeData(
-            color: Colors.white,
-          ),
-          title: const Text('Assignment3'),
-          actions: [
-            IconButton(onPressed: () {}, icon: Icon(Icons.add)),
-          ],
-          bottom: const TabBar(
-            tabs: [
-              Tab(icon: Icon(Icons.image)),
-              Tab(icon: Icon(Icons.how_to_vote)),
-              Tab(icon: Icon(Icons.upload)),
-            ],
-          )
-          ),
-        body: TabBarView(
-          children: [
-            Tab(
-              child: GridView.count(
-                crossAxisCount: 3,
-                children: List.generate(16, (i) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage('assets/dog_images/dog_${i+1}.jpeg'),
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  );
-                }),
+        ],
+      ),
+      drawer: Drawer(),
+      body:
+
+      Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListView(
+            children: [
+              TextField(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Mid-term exam',
+                ),
+                controller: _midtermController,
+                keyboardType: TextInputType.number,
               ),
-            ),
-            Tab(
-              child: Column(
+              Container(
+                height: 20,
+              ),
+              TextField(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Final exam',
+                ),
+                controller: _finalController,
+                keyboardType: TextInputType.number,
+              ),
+              Container(
+                height: 20,
+              ),
+              Container(
+                height: 100,
+                child: ListView( // 라디오 버튼 목록의 ListView
+                  children: [
+                    RadioListTile(
+                      title: Text('Project Team Leader (+10)'),
+                      value: Role.leader,
+                      groupValue: _role,
+                      onChanged: (value) {
+                        setState(() {
+                          _role = value!;
+                        });
+                      },
+                    ),
+                    RadioListTile(
+                      title: Text('Project Team Member'),
+                      value: Role.member,
+                      groupValue: _role,
+                      onChanged: (value) {
+                        setState(() {
+                          _role = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              Container(height: 20),
+              Row(
                 children: [
-                  Text('Cendidate', style: TextStyle(fontSize: 20.0)),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          elevation: 4.0,
-                          child: Container(
-                            width: 100,
-                            height: 100,
-                            child: Center(child: Text('Dog1', style: TextStyle(fontSize: 13.0, color: Colors.red))),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          elevation: 4.0,
-                          child: Container(
-                            width: 100,
-                            height: 100,
-                            child: Center(child: Text('Dog2', style: TextStyle(fontSize: 13.0, color: Colors.blue))),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          elevation: 4.0,
-                          child: Container(
-                            width: 100,
-                            height: 100,
-                            child: Center(child: Text('Dog3',
-                              style: TextStyle(fontSize: 13.0, color: Colors.green)),
-                          ),
-                        ),
-                      ),
-                      )],
-                  ),
-                  Text('Vote rate', style: TextStyle(fontSize: 20.0)),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 5,
-                        child: Container(
-                          color: Colors.red,
-                          width: 100,
-                          height: 100,
-                          child: Center(child: Text('50%', style: TextStyle(fontSize: 13.0))),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          color: Colors.blue,
-                          width: 100,
-                          height: 100,
-                          child: Center(child: Text('20%', style: TextStyle(fontSize: 13.0))),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Container(
-                          color: Colors.green,
-                          width: 100,
-                          height: 100,
-                          child: Center(child: Text('30%', style: TextStyle(fontSize: 13.0))),
-                        ),
-                      ),
-                    ],
+                  Container(width: 17),
+                  Text('Addition Point', style: TextStyle(fontSize: 17)),
+                  Container(width: 175),
+                  DropdownButton(
+                    value: _selectedValue,
+                    items: _valueList.map(
+                            (student) => DropdownMenuItem(
+                            value: student,
+                            child: Text(student))).toList(),
+                    onChanged: (value){
+                      setState(() {
+                        _selectedValue = value!;
+                      });
+                    },
                   ),
                 ],
               ),
-            ),
-            Tab(
-              child: LinearProgressIndicator(),
-            ),
-          ],
+              CheckboxListTile( // Switch도 있고, SwtichListTile, CheckboxListTile도 있음, 여러 개 만들고자 할 때는 ListView를 사용
+                title: Text('Absence less than 4', style: TextStyle(fontSize: 17)),
+                value: _isChecked,
+                onChanged: (value) {
+                  setState(() { // 상태를 바꿔주는 함수
+                    _isChecked = value!; // !는 null이 아니라고 보증해주는 것
+                  });
+                },
+              ),
+              Text(_grade, style: TextStyle(fontSize: 40, color: Colors.red), textAlign: TextAlign.center),
+              Container(
+                height: 20,
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      var midtermValue =
+                      double.parse(_midtermController.text.trim());
+                      var finalValue =
+                      double.parse(_finalController.text.trim());
+                      var addValue = double.parse(_selectedValue.substring(0,1));
+                      var totalpoint = midtermValue + finalValue + addValue;
+                      if(_role == Role.leader){
+                        totalpoint += 10;
+                      }
+                      if(_isChecked == true){
+                        _grade = 'F';
+                      }
+                      else{
+                        if(totalpoint >= 170){
+                          _grade = 'A';
+                        }
+                        else if(totalpoint >= 150){
+                          _grade = 'B';
+                        }
+                        else if(totalpoint >= 130){
+                          _grade = 'C';
+                        }
+                        else if(totalpoint >= 110){
+                          _grade = 'D';
+                        }
+                        else{
+                          _grade = 'F';
+                        }
+                      }
+                    });
+                  },
+                  child: Text('Enter')
+              ),
+            ],
+          ),
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          items:[
-            BottomNavigationBarItem(icon: Icon(Icons.photo_album), label: 'album'),
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'home'),
-            BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'settings'),
-          ]
-        )
-      ),
     );
   }
 }
