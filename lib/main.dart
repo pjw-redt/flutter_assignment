@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'style.dart';
 
-enum Role { leader, member }
-
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
@@ -16,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'First Flutter App',
       theme: ThemeData(
-        primarySwatch: Colors.orange,
+        primarySwatch: Colors.purple,
         fontFamily: 'Pretendard',
       ),
       home: MyHomePage(), // title은 제목
@@ -24,174 +22,191 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class StudentResult {
+  String name;
+  int projectpoint;
+  int additionalpoint;
+
+  StudentResult(this.name, this.projectpoint, this.additionalpoint);
+
+  @override
+  String toString(){
+    return 'StudentResult{name: $name, projectpoint: $projectpoint, additionalpoint: $additionalpoint}';
+  }
+}
+
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key}); // 우리가 보고있는 화면
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool _isChecked = false;
-  // bool _isChecked2 = false;
+  final _formKey = GlobalKey<FormState>();
+  StudentResult studentResult = StudentResult('', 0, 0);
+  List items = ['Jiwoo : 80', 'Siwoo : 100'];
 
-  Role _role = Role.member;
-
-  final _valueList = List.generate(10, (i) => '$i point');
-  var _selectedValue = '0 point';
-
-  String _grade = 'A';
-  final _midtermController =
-  TextEditingController(); // 텍스트 필드에 입력된 값을 가져오기 위한 컨트롤러
-  final _finalController =
-  TextEditingController(); // 텍스트 필드에 입력된 값을 가져오기 위한 컨트롤러
-
-  void dispose() {
-    _midtermController.dispose();
-    _finalController.dispose(); // 컨트롤러를 사용한 뒤에는 반드시 해제해야 함
-    super.dispose();
+ReorderableListView makeList(){
+    return ReorderableListView.builder(
+      itemCount: items.length,
+      itemBuilder: (c,i) {
+        return Dismissible(
+          background: Container(color: Colors.red),
+          key: ValueKey(items[i]),
+          child: ListTile(
+            title: Text('${items[i]}'),
+            leading: Icon(Icons.home),
+          ),
+          onDismissed: (direction) {
+            setState(() {
+              items.removeAt(i);
+            });
+          },
+        );
+      },
+      onReorder: (int oldIndex, int newIndex) {
+        setState(() {
+          if(oldIndex < newIndex) {
+            newIndex -= 1;
+          }
+          items.insert(newIndex, items.removeAt(oldIndex));
+        });
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Grade Calculator'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: (){},
-          ),
-        ],
-      ),
-      drawer: Drawer(),
-      body:
-
-      Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ListView(
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Mid-term exam',
-                ),
-                controller: _midtermController,
-                keyboardType: TextInputType.number,
-              ),
-              Container(
-                height: 20,
-              ),
-              TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Final exam',
-                ),
-                controller: _finalController,
-                keyboardType: TextInputType.number,
-              ),
-              Container(
-                height: 20,
-              ),
-              Container(
-                height: 100,
-                child: ListView( // 라디오 버튼 목록의 ListView
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold( // Scaffold로 감싸기
+        appBar: AppBar(
+          centerTitle: false,
+          title: Text('Grade Calculator', textAlign: TextAlign.left),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () {},
+            ),
+          ],
+          bottom: const TabBar(tabs: [
+            Tab(text: 'Information'),
+            Tab(text: 'List'),
+          ]),// AppBar 추가
+        ),
+        body: TabBarView(
+          children: [
+            Tab(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: ListView(
                   children: [
-                    RadioListTile(
-                      title: Text('Project Team Leader (+10)'),
-                      value: Role.leader,
-                      groupValue: _role,
-                      onChanged: (value) {
-                        setState(() {
-                          _role = value!;
-                        });
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Name',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your Name';
+                        } else if(int.tryParse(value) != null){
+                          return 'Please enter some string, not a number';
+                        } return null;
+                      },
+                      onSaved: (value) {
+                        studentResult.name = value!;
                       },
                     ),
-                    RadioListTile(
-                      title: Text('Project Team Member'),
-                      value: Role.member,
-                      groupValue: _role,
-                      onChanged: (value) {
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Project point',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your project point';
+                        } else if(int.tryParse(value) == null){
+                          return 'Please enter some integer.';
+                        } return null;
+                      },
+                      onSaved: (value) {
+                        studentResult.projectpoint = int.parse(value!);
+                      },
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    DropdownButtonFormField(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Additional point',
+                      ),
+                      value: studentResult.additionalpoint,
+                      items: List.generate(11, (i) {
+                        if(i==0){
+                          return DropdownMenuItem(
+                            value: i,
+                            child: const Text('Choose the additional point')
+                          );
+                        }
+                        return DropdownMenuItem(
+                          value: i,
+                          child: Text('${i-1} point')
+                        );
+                      }),
+                      onChanged: (value){
                         setState(() {
-                          _role = value!;
+                          studentResult.additionalpoint = value!;
                         });
                       },
+                      validator: (value) {
+                        if(value == 0){
+                          return 'Please select the point';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    GestureDetector(
+                      child: Container(
+                        color: Colors.blue,
+                        height: 50,
+                        child: const Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: Text('Enter', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: Colors.white)),
+                        ),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          if (_formKey.currentState!.validate()) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Processing Data')),
+                            );
+                            _formKey.currentState!.save();
+                            items.add('${studentResult.name}: ${studentResult.projectpoint + studentResult.additionalpoint-1}');
+                          }
+                        });
+                      }
                     ),
                   ],
                 ),
               ),
-              Container(height: 20),
-              Row(
-                children: [
-                  Container(width: 17),
-                  Text('Addition Point', style: TextStyle(fontSize: 17)),
-                  Container(width: 175),
-                  DropdownButton(
-                    value: _selectedValue,
-                    items: _valueList.map(
-                            (student) => DropdownMenuItem(
-                            value: student,
-                            child: Text(student))).toList(),
-                    onChanged: (value){
-                      setState(() {
-                        _selectedValue = value!;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              CheckboxListTile( // Switch도 있고, SwtichListTile, CheckboxListTile도 있음, 여러 개 만들고자 할 때는 ListView를 사용
-                title: Text('Absence less than 4', style: TextStyle(fontSize: 17)),
-                value: _isChecked,
-                onChanged: (value) {
-                  setState(() { // 상태를 바꿔주는 함수
-                    _isChecked = value!; // !는 null이 아니라고 보증해주는 것
-                  });
-                },
-              ),
-              Text(_grade, style: TextStyle(fontSize: 40, color: Colors.red), textAlign: TextAlign.center),
-              Container(
-                height: 20,
-              ),
-              ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      var midtermValue =
-                      double.parse(_midtermController.text.trim());
-                      var finalValue =
-                      double.parse(_finalController.text.trim());
-                      var addValue = double.parse(_selectedValue.substring(0,1));
-                      var totalpoint = midtermValue + finalValue + addValue;
-                      if(_role == Role.leader){
-                        totalpoint += 10;
-                      }
-                      if(_isChecked == true){
-                        _grade = 'F';
-                      }
-                      else{
-                        if(totalpoint >= 170){
-                          _grade = 'A';
-                        }
-                        else if(totalpoint >= 150){
-                          _grade = 'B';
-                        }
-                        else if(totalpoint >= 130){
-                          _grade = 'C';
-                        }
-                        else if(totalpoint >= 110){
-                          _grade = 'D';
-                        }
-                        else{
-                          _grade = 'F';
-                        }
-                      }
-                    });
-                  },
-                  child: Text('Enter')
-              ),
-            ],
+            ),
           ),
+          Tab(
+            child: makeList(),
+          ),]
         ),
+      ),
     );
   }
 }
+
